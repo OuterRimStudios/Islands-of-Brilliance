@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class OceanDebugGUI : MonoBehaviour
 {
     [SerializeField] bool _showSimTargets = false;
     [SerializeField] bool _guiVisible = true;
     static float _leftPanelWidth = 180f;
-    ShapeGerstnerBatched[] gerstners;
+    ShapeGerstnerBatched[] _gerstners;
 
     static Dictionary<System.Type, bool> _drawTargets = new Dictionary<System.Type, bool>();
     static Dictionary<System.Type, string> _simNames = new Dictionary<System.Type, string>();
@@ -18,20 +19,6 @@ public class OceanDebugGUI : MonoBehaviour
     public static bool OverGUI(Vector2 screenPosition)
     {
         return screenPosition.x < _leftPanelWidth;
-    }
-
-    private void Start()
-    {
-        if (OceanRenderer.Instance == null)
-        {
-            enabled = false;
-            return;
-        }
-
-        gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
-        // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
-        // which helps if the gerstners are on sibling GOs.
-        System.Array.Sort(gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
     }
 
     private void Update()
@@ -76,16 +63,33 @@ public class OceanDebugGUI : MonoBehaviour
             }
 
             GUI.Label(new Rect(x, y, w, h), "Gerstner weight(s)"); y += h;
-            foreach (var gerstner in gerstners)
+            if (_gerstners == null)
             {
-                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w, h), gerstner._weight, 0f, 1f); y += h;
+                _gerstners = FindObjectsOfType<ShapeGerstnerBatched>();
+                // i am getting the array in the reverse order compared to the hierarchy which bugs me. sort them based on sibling index,
+                // which helps if the gerstners are on sibling GOs.
+                System.Array.Sort(_gerstners, (a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+            }
+            foreach (var gerstner in _gerstners)
+            {
+                var specW = 75f;
+                gerstner._weight = GUI.HorizontalSlider(new Rect(x, y, w - specW - 5f, h), gerstner._weight, 0f, 1f);
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x + w - specW, y, specW, h), "Spectrum"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(gerstner._spectrum);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+#endif
+                y += h;
             }
 
             _showSimTargets = GUI.Toggle(new Rect(x, y, w, h), _showSimTargets, "Show sim data"); y += h;
 
-#if UNITY_EDITOR
             LodDataMgrAnimWaves._shapeCombinePass = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePass, "Shape combine pass"); y += h;
-#endif
+            LodDataMgrAnimWaves._shapeCombinePassPingPong = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrAnimWaves._shapeCombinePassPingPong, "Combine pass ping pong"); y += h;
 
             LodDataMgrShadow.s_processData = GUI.Toggle(new Rect(x, y, w, h), LodDataMgrShadow.s_processData, "Process Shadows"); y += h;
 
@@ -102,11 +106,31 @@ public class OceanDebugGUI : MonoBehaviour
                 GUI.Label(new Rect(x, y, w, h), string.Format("Coll Queue Lengths: [{0}, {1}]", min, max)); y += h;
             }
 
-            if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+            if (OceanRenderer.Instance)
             {
-                var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
-                // generates garbage
-                GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
+                if (OceanRenderer.Instance._simSettingsAnimatedWaves.CachedHeightQueries)
+                {
+                    var cache = OceanRenderer.Instance.CollisionProvider as CollProviderCache;
+                    // generates garbage
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Cache hits: {0}/{1}", cache.CacheHits, cache.CacheChecks)); y += h;
+                }
+
+                if (OceanRenderer.Instance._lodDataDynWaves != null)
+                {
+                    int steps; float dt;
+                    OceanRenderer.Instance._lodDataDynWaves.GetSimSubstepData(OceanRenderer.Instance.DeltaTimeDynamics, out steps, out dt);
+                    GUI.Label(new Rect(x, y, w, h), string.Format("Sim steps: {0:0.00000} x {1}", dt, steps)); y += h;
+                }
+
+#if UNITY_EDITOR
+                if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
+                {
+                    var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
+                    var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
+                    UnityEditor.Selection.activeObject = asset;
+                }
+                y += h;
+#endif
             }
 
             if (GUI.Button(new Rect(x, y, w, h), "Hide GUI (G)"))
@@ -114,16 +138,6 @@ public class OceanDebugGUI : MonoBehaviour
                 ToggleGUI();
             }
             y += h;
-
-#if UNITY_EDITOR
-            if (GUI.Button(new Rect(x, y, w, h), "Select Ocean Mat"))
-            {
-                var path = UnityEditor.AssetDatabase.GetAssetPath(OceanRenderer.Instance.OceanMaterial);
-                var asset = UnityEditor.AssetDatabase.LoadMainAssetAtPath(path);
-                UnityEditor.Selection.activeObject = asset;
-            }
-            y += h;
-#endif
         }
 
         // draw source textures to screen
@@ -137,6 +151,8 @@ public class OceanDebugGUI : MonoBehaviour
 
     void DrawShapeTargets()
     {
+        if (OceanRenderer.Instance == null) return;
+
         // draw sim data
         float column = 1f;
 
@@ -147,6 +163,8 @@ public class OceanDebugGUI : MonoBehaviour
         DrawSims<LodDataMgrShadow>(OceanRenderer.Instance._lodDataShadow, false, ref column);
         DrawSims<LodDataMgrSeaFloorDepth>(OceanRenderer.Instance._lodDataSeaDepths, false, ref column);
     }
+
+    static Dictionary<RenderTextureFormat, RenderTexture> shapes = new Dictionary<RenderTextureFormat, RenderTexture>();
 
     static void DrawSims<SimType>(LodDataMgr lodData, bool showByDefault, ref float offset) where SimType : LodDataMgr
     {
@@ -163,21 +181,30 @@ public class OceanDebugGUI : MonoBehaviour
         }
 
         float b = 7f;
-        float h = Screen.height / (float)OceanRenderer.Instance._lods.Length;
+        float h = Screen.height / (float)lodData.DataTexture.volumeDepth;
         float w = h + b;
         float x = Screen.width - w * offset + b * (offset - 1f);
 
         if (_drawTargets[type])
         {
-            for (int idx = 0; idx < OceanRenderer.Instance.CurrentLodCount; idx++)
+            for (int idx = 0; idx < lodData.DataTexture.volumeDepth; idx++)
             {
                 float y = idx * h;
                 if (offset == 1f) w += b;
 
-                RenderTexture shape;
+                // We cannot debug draw texture arrays directly
+                // (unless we write our own system for doing so).
+                // So for now, we just copy each texture and then draw that.
+                if (!shapes.ContainsKey(lodData.DataTexture.format))
+                {
+                    var rt = new RenderTexture(lodData.DataTexture);
+                    rt.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
+                    rt.Create();
+                    shapes.Add(lodData.DataTexture.format, rt);
+                }
 
-                shape = lodData.DataTexture(idx);
-                if (shape == null) continue;
+                RenderTexture shape = shapes[lodData.DataTexture.format];
+                Graphics.CopyTexture(lodData.DataTexture, idx, 0, shape, 0, 0);
 
                 GUI.color = Color.black * 0.7f;
                 GUI.DrawTexture(new Rect(x, y, w - b, h), Texture2D.whiteTexture);

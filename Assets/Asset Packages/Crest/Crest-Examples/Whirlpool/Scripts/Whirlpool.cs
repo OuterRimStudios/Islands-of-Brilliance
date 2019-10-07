@@ -7,13 +7,13 @@ namespace Crest
     public class Whirlpool : MonoBehaviour
     {
         [Range(0, 1000), SerializeField]
-        float _amplitude = 10f;
+        float _amplitude = 20f;
         [Range(0, 1000), SerializeField]
-        float _radius = 20f;
+        float _radius = 80f;
         [Range(0, 1000), SerializeField]
         float _eyeRadius = 1f;
         [Range(0, 1000), SerializeField]
-        float _maxSpeed = 70f;
+        float _maxSpeed = 10f;
 
         [SerializeField]
         bool _createDisplacement = true;
@@ -43,19 +43,19 @@ namespace Crest
                 return;
             }
 
-            _displacementMaterial = new Material(Shader.Find("Ocean/Inputs/Animated Waves/Whirlpool"));
+            _displacementMaterial = new Material(Shader.Find("Crest/Inputs/Animated Waves/Whirlpool"));
             if (_createDisplacement)
             {
                 AddInput<RegisterAnimWavesInput>(_displacementMaterial, _radius);
             }
 
-            _flowMaterial = new Material(Shader.Find("Ocean/Inputs/Flow/Whirlpool"));
+            _flowMaterial = new Material(Shader.Find("Crest/Inputs/Flow/Whirlpool"));
             if (_createFlow)
             {
                 AddInput<RegisterFlowInput>(_flowMaterial, _radius);
             }
 
-            _dampDynWavesMaterial = new Material(Shader.Find("Ocean/Inputs/Dynamic Waves/Dampen Circle"));
+            _dampDynWavesMaterial = new Material(Shader.Find("Crest/Inputs/Dynamic Waves/Dampen Circle"));
             if (_createDynWavesDampen)
             {
                 AddInput<RegisterDynWavesInput>(_dampDynWavesMaterial, _radius);
@@ -70,16 +70,17 @@ namespace Crest
             Destroy(input.GetComponent<Collider>());
             input.name = typeof(RegisterInputType).Name;
             input.transform.parent = transform;
-            input.transform.position = new Vector3(0f, -100f, 0f);
+            input.transform.localPosition = new Vector3(0f, 0f, 0f);
             input.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
-            input.transform.localScale = new Vector3(radius * 2f, radius * 2f, 1f);
+            input.transform.localScale = new Vector3(radius, radius, 1f);
             input.GetComponent<Renderer>().material = material;
             input.AddComponent<RegisterInputType>();
         }
 
         void Update()
         {
-            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0, _amplitude);
+            OceanRenderer.Instance.ReportMaxDisplacementFromShape(0f, _amplitude, 0f);
+
             UpdateMaterials();
         }
     }
