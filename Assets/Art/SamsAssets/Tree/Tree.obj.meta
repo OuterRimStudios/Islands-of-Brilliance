@@ -1,0 +1,315 @@
+fileFormatVersion: 2
+guid: 3aa3f6f49e68c71409d584dac04ebfcc
+ModelImporter:
+  serializedVersion: 26
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SupportMat
+    second: {fileID: 2100000, guid: 0061eeef38797ac42a0f947ab2543477, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_GrassA_002_Grass_GrassA_003_GrassA_004_GrassA_005_GrassA_006_GrassA_007_GrassA_001_GrassA_008_GrassA_009_GrassA_0010_GrassA_0011_GrassA_0012_GrassA_0013_GrassA_0014_GrassA_0015_GrassA_0016_GrassA_0017_GrassA_0018_GrassA_0019_GrassA_0020_GrassA_0021_GrassA_0022Mat
+    second: {fileID: 2100000, guid: 36724a210d2e1bb42a3fee4614a71e99, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Grass_GrassB_008_GrassB_007_GrassB_006_GrassB_005_GrassB_004_GrassB_003_GrassB_002_GrassB_001_GrassB_009_GrassB_0010_GrassB_0011_GrassB_0012_GrassB_0013_GrassB_0014_GrassB_0015_GrassB_0016_GrassB_0017_GrassB_0018Mat
+    second: {fileID: 2100000, guid: 41ac2e5908a61a34391905f51b0eb437, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Grass_GrassC_007_GrassC_006_GrassC_005_GrassC_004_GrassC_003_GrassC_002_GrassC_001_GrassC_008_GrassC_009_GrassC_0010_GrassC_0011_GrassC_0012_GrassC_0013_GrassC_0014_GrassC_0015_GrassC_0016_GrassC_0017Mat
+    second: {fileID: 2100000, guid: ab905486620c7fe489da10846abcf8da, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_GroundMat
+    second: {fileID: 2100000, guid: 2d580c4d505ea724e8e2a94caf1506b0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_0010Mat
+    second: {fileID: 2100000, guid: d9f59116dee36e047ac4b890d41f4da4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_0010_Modular_Brick_0011Mat
+    second: {fileID: 2100000, guid: 4a07b8245c2a73342a13d10a896a83f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_0012Mat
+    second: {fileID: 2100000, guid: ce38b5fad2deafe45bdbe20ee57c9f73, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_004Mat
+    second: {fileID: 2100000, guid: fb462173acb999e4082df2dede8d5670, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_004_Modular_Brick_002Mat
+    second: {fileID: 2100000, guid: 51dc53ab996d76c4e8168413b4644ac5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_004_Modular_Brick_003Mat
+    second: {fileID: 2100000, guid: 1a83075ef93a74e4596402077ed67daf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_005Mat
+    second: {fileID: 2100000, guid: 7ec41647339d5ba45a99d1eaf50dfe60, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_006Mat
+    second: {fileID: 2100000, guid: b20307395c79dce4bb4de5646c2bf22b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_007Mat
+    second: {fileID: 2100000, guid: 006eb60e35da90a4ea4ad0b9c0a59845, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_008Mat
+    second: {fileID: 2100000, guid: fcf80a892f85aeb4da86f67e4ec8e219, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Bricks_Modular_Brick_008_Modular_Brick_009Mat
+    second: {fileID: 2100000, guid: 1a87d211790eade47ab335e60c938f77, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Modular_Brick_001_BricksMat
+    second: {fileID: 2100000, guid: d8daa32ef7e18304f9484f942e735db6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_TreeMat
+    second: {fileID: 2100000, guid: bc3b298aabcbb494c8c12123e8209a30, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_LeaveA_001_LeavesMat
+    second: {fileID: 2100000, guid: 483f642665e56484c880fa5069d868e1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0010Mat
+    second: {fileID: 2100000, guid: 108bb23cf0ec07d45bb7f8f3a4e2d598, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0011Mat
+    second: {fileID: 2100000, guid: 615a3dfc6b484f440836a7f62aecb584, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0012Mat
+    second: {fileID: 2100000, guid: 1b35382c233010f4e9118070ed4bd4b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0013Mat
+    second: {fileID: 2100000, guid: c8e352986c1cf314c914ddf8264b9247, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0014Mat
+    second: {fileID: 2100000, guid: a061b2ef0e19d3b488ecbe167b184fde, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0015Mat
+    second: {fileID: 2100000, guid: a54443a4e201b0a4d808b177252955be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_0016Mat
+    second: {fileID: 2100000, guid: bd7de28f5688fb94aa04a5e2582c8435, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_002Mat
+    second: {fileID: 2100000, guid: 276be7189f6eac84a9f6cfeca1698c79, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_003Mat
+    second: {fileID: 2100000, guid: cf47e8a114c5a89498200fcf5f7a1c1c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_004Mat
+    second: {fileID: 2100000, guid: 5dc447a2c2c32ce4d8e82575ef457670, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_005Mat
+    second: {fileID: 2100000, guid: c90603028b6fe424a983696adb2ad6bf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_006Mat
+    second: {fileID: 2100000, guid: db5e972df9c7c654aac26b2513b0dc64, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_007Mat
+    second: {fileID: 2100000, guid: 37f87748f475b7944a3a7c1b044c55a3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_008Mat
+    second: {fileID: 2100000, guid: 3fec5a2c2d533b74786045f4079ee9ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveA_009Mat
+    second: {fileID: 2100000, guid: ed1ea51d33fde624398cd9dbb0dda666, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_001Mat
+    second: {fileID: 2100000, guid: 019178cbc3fef824399a30421ce58f3e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_002Mat
+    second: {fileID: 2100000, guid: 1c091ee88eee1454f9b999d5b8e7ff0d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_003Mat
+    second: {fileID: 2100000, guid: ecf795c4631f61443aa1b11803449144, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_004Mat
+    second: {fileID: 2100000, guid: 1970d2be3ab31a241abc2473886fa016, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_005Mat
+    second: {fileID: 2100000, guid: cccb9a892653eab45a7c7e93b075b3b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_006Mat
+    second: {fileID: 2100000, guid: 45aacce2f13383e4dbb343828b87c382, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_007Mat
+    second: {fileID: 2100000, guid: 192cd48cd43a55045aa892e3ff2efa97, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_008Mat
+    second: {fileID: 2100000, guid: b363a2238c0752e44bb95dc521bae316, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_Tree_Leaves_LeaveB_009Mat
+    second: {fileID: 2100000, guid: ed7c55ede6113e5458ae9836524d3e0a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Support_Ground_WallMat
+    second: {fileID: 2100000, guid: ad679d4baab8623499ffa56dc42d6057, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 0.1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 0.1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

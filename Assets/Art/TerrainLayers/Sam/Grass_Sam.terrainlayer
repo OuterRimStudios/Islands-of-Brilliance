@@ -7,13 +7,13 @@ TerrainLayer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Grass_Sam
-  m_DiffuseTexture: {fileID: 2800000, guid: 524f176f00e7382438839bc9f06e9764, type: 3}
-  m_NormalMapTexture: {fileID: 0}
-  m_MaskMapTexture: {fileID: 0}
-  m_TileSize: {x: 2, y: 2}
+  m_DiffuseTexture: {fileID: 2800000, guid: 94ecf6e2919dacb438e4975ba112b840, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: e99d4350ad9ce8349b9515e0235c625a, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: 5b71996b12fa26e459b10336f96511a5, type: 3}
+  m_TileSize: {x: 4, y: 4}
   m_TileOffset: {x: 0, y: 0}
   m_Specular: {r: 0, g: 0, b: 0, a: 0}
-  m_Metallic: 0
+  m_Metallic: 0.5
   m_Smoothness: 0
   m_NormalScale: 1
   m_DiffuseRemapMin: {x: 0, y: 0, z: 0, w: 0}
