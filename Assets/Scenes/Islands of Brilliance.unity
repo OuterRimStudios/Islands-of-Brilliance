@@ -9375,6 +9375,26 @@ PrefabInstance:
       propertyPath: _lodCount
       value: 12
       objectReference: {fileID: 0}
+    - target: {fileID: 8277353133937032527, guid: fccde6197fad58d4ebe570e51eee0f2e,
+        type: 3}
+      propertyPath: _gravityMultiplier
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277353133937032527, guid: fccde6197fad58d4ebe570e51eee0f2e,
+        type: 3}
+      propertyPath: _minTexelsPerWave
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277353133937032527, guid: fccde6197fad58d4ebe570e51eee0f2e,
+        type: 3}
+      propertyPath: _dropDetailHeightBasedOnWaves
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8277353133937032527, guid: fccde6197fad58d4ebe570e51eee0f2e,
+        type: 3}
+      propertyPath: _viewpoint
+      value: 
+      objectReference: {fileID: 1255311106}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fccde6197fad58d4ebe570e51eee0f2e, type: 3}
 --- !u!1 &1042752588
