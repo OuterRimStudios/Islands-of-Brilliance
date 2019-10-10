@@ -10,7 +10,7 @@ Material:
   m_Name: Ocean
   m_Shader: {fileID: 4800000, guid: 668aecf91371c8b4997e42c0c7b19527, type: 3}
   m_ShaderKeywords: _APPLYNORMALMAPPING_ON _CAUSTICS_ON _COMPILESHADERWITHDEBUGINFO_ON
-    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FLOW_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
+    _DEBUGMULTIPLYBYLIGHT0COLOR_ON _FOAM3DLIGHTING_ON _FOAM_ON _SUBSURFACEHEIGHTLERP_ON
     _SUBSURFACESCATTERING_ON _SUBSURFACESHALLOWCOLOUR_ON _TRANSPARENCY_ON
   m_LightmapFlags: 5
   m_EnableInstancingVariants: 0
@@ -103,44 +103,44 @@ Material:
     - _DebugVisualiseShapeSample: 0
     - _DirectionalLightBoost: 7
     - _DirectionalLightFallOff: 1
-    - _Flow: 1
+    - _Flow: 0
     - _Foam: 1
     - _Foam3DLighting: 1
     - _FoamBubbleParallax: 0.25
     - _FoamScale: 20
-    - _FresnelPower: 4.3
+    - _FresnelPower: 8.9
     - _Invert: 1
     - _MipBias: 0
     - _Moving: 0.17
-    - _NormalsScale: 36
-    - _NormalsStrength: 0.32
+    - _NormalsScale: 107
+    - _NormalsStrength: 0.5
     - _Offset: 0.00008
     - _OverrideReflectionCubemap: 0
     - _PlanarReflectionNormalsStrength: 1
     - _PlanarReflections: 0
     - _ProceduralSky: 0
     - _RefractAmt: 0
-    - _RefractionStrength: 0
-    - _RefractiveIndexOfAir: 1.52
-    - _RefractiveIndexOfWater: 2
+    - _RefractionStrength: 2
+    - _RefractiveIndexOfAir: 1.34
+    - _RefractiveIndexOfWater: 1.51
     - _S: 1
     - _Shadows: 0
     - _ShorelineFoamMinDepth: 0.01
-    - _SkyDirectionality: 0.875
-    - _Specular: 1
+    - _SkyDirectionality: 0.99
+    - _Specular: 0
     - _StartLevel: 0.157
     - _StencilFunction: 0
     - _SubSurfaceBase: 4
     - _SubSurfaceCrestColour: 1
-    - _SubSurfaceDepthMax: 50
-    - _SubSurfaceDepthPower: 10
+    - _SubSurfaceDepthMax: 0.01
+    - _SubSurfaceDepthPower: 0.01
     - _SubSurfaceHeightLerp: 1
     - _SubSurfaceHeightMax: 50
     - _SubSurfaceHeightPower: 10
     - _SubSurfaceScattering: 1
     - _SubSurfaceShallowColour: 1
-    - _SubSurfaceSun: 3
-    - _SubSurfaceSunFallOff: 6.6
+    - _SubSurfaceSun: 4.4
+    - _SubSurfaceSunFallOff: 1
     - _TexelSize: 0.125
     - _TextureRes: 1024
     - _Transparency: 1
@@ -163,7 +163,7 @@ Material:
     - _DepthFogDensity: {r: 0.3, g: 0.22, b: 0.3, a: 1}
     - _Diffuse: {r: 0.43867922, g: 0.9251573, b: 1, a: 1}
     - _DiffuseGrazing: {r: 0, g: 0.7882352, b: 1, a: 1}
-    - _DiffuseShadow: {r: 0.14346743, g: 0.6453879, b: 0.9811321, a: 1}
+    - _DiffuseShadow: {r: 0, g: 0.6009393, b: 1, a: 1}
     - _FoamBubbleColor: {r: 0.6383055, g: 0.8301887, b: 0.8243741, a: 1}
     - _FoamWhiteColor: {r: 1, g: 0.99634784, b: 0.97199994, a: 0.6862745}
     - _SkyAwayFromSun: {r: 0.15419213, g: 0.22129796, b: 0.5372549, a: 1}
