@@ -1,6 +1,4 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
@@ -14,8 +12,6 @@ namespace Crest
     {
         [SerializeField] bool _assignOceanDepthMaterial = true;
 
-        public override float Wavelength => 0f;
-
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -23,7 +19,7 @@ namespace Crest
             if (_assignOceanDepthMaterial)
             {
                 var rend = GetComponent<Renderer>();
-                rend.material = new Material(Shader.Find("Crest/Inputs/Depth/Ocean Depth From Geometry"));
+                rend.material = new Material(Shader.Find("Ocean/Inputs/Depth/Ocean Depth From Geometry"));
             }
         }
     }

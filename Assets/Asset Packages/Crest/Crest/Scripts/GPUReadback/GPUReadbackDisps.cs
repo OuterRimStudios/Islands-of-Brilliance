@@ -1,19 +1,26 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
 namespace Crest
 {
-    /// <summary>
-    /// Reads back displacements - this is the ocean shape, which includes any dynamic waves and any custom shape.
-    /// </summary>
     public class GPUReadbackDisps : GPUReadbackBase<LodDataMgrAnimWaves>, ICollProvider
     {
         PerLodData _areaData;
 
-        public static GPUReadbackDisps Instance { get; private set; }
+        static GPUReadbackDisps _instance;
+        public static GPUReadbackDisps Instance
+        {
+            get
+            {
+#if !UNITY_EDITOR
+                return _instance;
+#else
+                // Allow hot code edit/recompile in editor - re-init singleton reference.
+                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackDisps>());
+#endif
+            }
+        }
 
         protected override bool CanUseLastTwoLODs
         {
@@ -34,22 +41,20 @@ namespace Crest
                 return;
             }
 
-            Instance = this;
+            Debug.Assert(_instance == null);
+            _instance = this;
 
-            _settingsProvider = OceanRenderer.Instance._simSettingsAnimatedWaves;
+            _settingsProvider = _lodComponent.Settings as SimSettingsAnimatedWaves;
         }
 
         private void OnDestroy()
         {
-            Instance = null;
+            _instance = null;
         }
 
         #region ICollProvider
         public bool ComputeUndisplacedPosition(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector3 undisplacedWorldPos)
         {
-            // Tag should not be null if the collision source is GPU readback.
-            Debug.Assert(i_samplingData._tag != null, "Invalid sampling data - LOD to sample from was unspecified.");
-
             var lodData = i_samplingData._tag as PerLodData;
 
             // FPI - guess should converge to location that displaces to the target position
@@ -200,13 +205,5 @@ namespace Crest
             return true;
         }
         #endregion
-
-#if UNITY_EDITOR
-        [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnReLoadScripts()
-        {
-            Instance = FindObjectOfType<GPUReadbackDisps>();
-        }
-#endif
     }
 }

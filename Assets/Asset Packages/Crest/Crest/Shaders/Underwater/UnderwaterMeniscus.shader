@@ -1,17 +1,17 @@
-﻿// Crest Ocean System
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
-Shader "Crest/Underwater Meniscus"
+Shader "Ocean/Underwater Meniscus"
 {
 	Properties
 	{
 		_MeniscusWidth("Meniscus Width", Range(0.0, 100.0)) = 1.0
+		[Toggle] _CompileShaderWithDebugInfo("Compile Shader With Debug Info (D3D11)", Float) = 0
 	}
 
 	SubShader
 	{
 		Tags{ "LightMode" = "ForwardBase" "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
+		LOD 100
 
 		Pass
 		{
@@ -21,37 +21,39 @@ Shader "Crest/Underwater Meniscus"
 			Blend DstColor Zero
 
 			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
+			#pragma vertex vert
+			#pragma fragment frag
+			
+			#pragma shader_feature _COMPILESHADERWITHDEBUGINFO_ON
 
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc"
 			#include "../OceanLODData.hlsl"
 			#include "UnderwaterShared.hlsl"
 
-			#define MAX_OFFSET 5.0
+			uniform float _CrestTime;
+			uniform float _MeniscusWidth;
 
-			float _CrestTime;
-			float _MeniscusWidth;
-
-			struct Attributes
+			struct appdata
 			{
-				float4 positionOS : POSITION;
+				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
-			struct Varyings
+			struct v2f
 			{
-				float4 positionCS : SV_POSITION;
+				float4 vertex : SV_POSITION;
 				float2 uv : TEXCOORD0;
 				half4 foam_screenPos : TEXCOORD1;
 				half4 grabPos : TEXCOORD2;
 				float3 worldPos : TEXCOORD3;
 			};
 
-			Varyings Vert(Attributes input)
+			#define MAX_OFFSET 5.0
+
+			v2f vert (appdata v)
 			{
-				Varyings o;
+				v2f o;
 
 				// view coordinate frame for camera
 				const float3 right = unity_CameraToWorld._11_21_31;
@@ -62,15 +64,16 @@ Shader "Crest/Underwater Meniscus"
 				// Spread verts across the near plane.
 				const float aspect = _ScreenParams.x / _ScreenParams.y;
 				o.worldPos = nearPlaneCenter
-					+ 2.6 * unity_CameraInvProjection._m11 * aspect * right * input.positionOS.x * _ProjectionParams.y
-					+ up * input.positionOS.z * _ProjectionParams.y;
+					+ 2.01 * unity_CameraInvProjection._m11 * aspect * right * v.vertex.x * _ProjectionParams.y
+					+ up * v.vertex.z * _ProjectionParams.y;
 
-				if (abs(forward.y) < CREST_MAX_UPDOWN_AMOUNT)
+
+				if (abs(forward.y) < MAX_UPDOWN_AMOUNT)
 				{
 					o.worldPos += min(IntersectRayWithWaterSurface(o.worldPos, up), MAX_OFFSET) * up;
 
 					const float offset = 0.001 * _ProjectionParams.y * _MeniscusWidth;
-					if (input.positionOS.z > 0.49)
+					if (v.vertex.z > 0.49)
 					{
 						o.worldPos += offset * up;
 					}
@@ -85,24 +88,24 @@ Shader "Crest/Underwater Meniscus"
 					o.worldPos *= 0.0;
 				}
 
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.0));
-				o.positionCS.z = o.positionCS.w;
+				o.vertex = mul(UNITY_MATRIX_VP, float4(o.worldPos, 1.));
+				o.vertex.z = o.vertex.w;
 
-				o.foam_screenPos.yzw = ComputeScreenPos(o.positionCS).xyw;
-				o.foam_screenPos.x = 0.0;
-				o.grabPos = ComputeGrabScreenPos(o.positionCS);
+				o.foam_screenPos.yzw = ComputeScreenPos(o.vertex).xyw;
+				o.foam_screenPos.x = 0.;
+				o.grabPos = ComputeGrabScreenPos(o.vertex);
 
-				o.uv = input.uv;
+				o.uv = v.uv;
 
 				return o;
 			}
 			
-			half4 Frag(Varyings input) : SV_Target
+			half4 frag(v2f i) : SV_Target
 			{
-				const half3 col = 1.3*half3(0.37, 0.4, 0.5);
-				float alpha = abs(input.uv.y - 0.5);
-				alpha = pow(smoothstep(0.5, 0.0, alpha), 0.5);
-				return half4(lerp((half3)1.0, col, alpha), alpha);
+				const half3 col = 1.3*half3(0.37, .4, .5);
+				float alpha = abs(i.uv.y - 0.5);
+				alpha = pow(smoothstep(0.5, .0, alpha), .5);
+				return half4(lerp(1., col, alpha), alpha);
 			}
 			ENDCG
 		}

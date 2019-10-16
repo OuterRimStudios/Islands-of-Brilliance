@@ -1,63 +1,51 @@
-﻿// Crest Ocean System
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
-Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
+Shader "Ocean/Inputs/Dynamic Waves/Object Interaction"
 {
 	Properties
 	{
 		_FactorParallel("FactorParallel", Range(0., 8.)) = 0.2
 		_FactorOrthogonal("FactorOrthogonal", Range(0., 4.)) = 0.2
-		_Strength("Strength", Range(0., 1000.)) = 0.2
+		_Strength("Strength", Range(0., 400.)) = 0.2
 		_Velocity("Velocity", Vector) = (0,0,0,0)
 	}
 
 	SubShader
 	{
 		Tags{ "Queue" = "Transparent" }
+		Blend One One
+		ZTest Always
+		ZWrite Off
 
 		Pass
 		{
-			Blend One One
-			ZTest Always
-			ZWrite Off
-			
 			CGPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 
 			#include "UnityCG.cginc"
 
-			float _FactorParallel;
-			float _FactorOrthogonal;
-			float3 _Velocity;
-			float _SimDeltaTime;
-			float _Strength;
-			float _Weight;
-			
-			struct Attributes
-			{
-				float3 positionOS : POSITION;
-				float3 normal : NORMAL;
-			};
-
 			struct Varyings
 			{
-				float4 positionCS : SV_POSITION;
+				float4 vertex : SV_POSITION;
 				float3 normal : NORMAL;
-				float4 col : COLOR;
+				fixed4 col : COLOR;
 				float offsetDist : TEXCOORD0;
 			};
 
-			Varyings Vert(Attributes input)
+			float _FactorParallel, _FactorOrthogonal;
+			float4 _Velocity;
+			float _SimDeltaTime;
+
+			Varyings Vert(appdata_base input)
 			{
 				Varyings o;
 
-				float3 vertexWorldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				float3 vertexWorldPos = mul(unity_ObjectToWorld, input.vertex).xyz;
 
 				o.normal = normalize(mul(unity_ObjectToWorld, float4(input.normal, 0.)).xyz);
 
-				float3 vel = _Velocity /= 30.;
+				float3 vel =_Velocity /= 30.;
 
 				float velMag = max(length(vel), 0.001);
 				float3 velN = vel / velMag;
@@ -74,17 +62,20 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 					angleFactor *= -1.;
 				}
 
-				float3 offset = o.normal * _FactorOrthogonal * pow(saturate(1. - angleFactor), .2) * velMag;
+				float3 offset = o.normal * _FactorOrthogonal * pow(1. - angleFactor, .2) * velMag;
 				offset += vel * _FactorParallel * pow(angleFactor, .5);
 				o.offsetDist = length(offset);
 				vertexWorldPos += offset;
 
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.));
+				o.vertex = mul(UNITY_MATRIX_VP, float4(vertexWorldPos, 1.));
 
-				o.col = 1.0;
+				o.col = (fixed4)1.;
 
 				return o;
 			}
+
+			float _Strength;
+			float _Weight;
 
 			half4 Frag(Varyings input) : SV_Target
 			{
@@ -96,8 +87,10 @@ Shader "Crest/Inputs/Dynamic Waves/Object Interaction"
 					col.x *= -.5;
 				}
 
-				// Accelerated velocities
-				return _Weight * half4(0., col.x*_SimDeltaTime, 0., 0.);
+				// write to both channels of sim. this has the affect of kinematically moving the water, instead of applying
+				// a force to accelerate it.
+				float dt2 = _SimDeltaTime * _SimDeltaTime;
+				return _Weight * half4(col.x*dt2, col.x*dt2, 0., 0.);
 			}
 			ENDCG
 		}

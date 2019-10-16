@@ -1,10 +1,8 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // This writes straight into the displacement texture and sets the water height to the y value of the geometry.
 
-Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
+Shader "Ocean/Inputs/Animated Waves/Set Water Height To Geometry"
 {
 	Properties
 	{
@@ -13,42 +11,44 @@ Shader "Crest/Inputs/Animated Waves/Set Water Height To Geometry"
 
  	SubShader
 	{
+		Tags{ "Queue" = "Transparent" }
+
  		Pass
 		{
 			Blend Off
 			ColorMask [_ColorWriteMask]
 
  			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
+			#pragma vertex vert
+			#pragma fragment frag
 
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
 
- 			struct Attributes
+ 			struct appdata
 			{
-				float3 positionOS : POSITION;
+				float4 vertex : POSITION;
 			};
 
- 			struct Varyings
+ 			struct v2f
 			{
-				float4 positionCS : SV_POSITION;
+				float4 vertex : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 			};
 
- 			Varyings Vert(Attributes input)
+ 			v2f vert (appdata v)
 			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 				return o;
 			}
 
- 			half4 Frag(Varyings input) : SV_Target
+ 			half4 frag (v2f i) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float height = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, height, 0.0, 1.0);
+				float height = i.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0., height, 0., 1.);
 			}
 			ENDCG
 		}

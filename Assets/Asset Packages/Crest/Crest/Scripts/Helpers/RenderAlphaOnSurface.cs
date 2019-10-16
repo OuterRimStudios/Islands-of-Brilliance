@@ -1,6 +1,4 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
@@ -14,60 +12,57 @@ namespace Crest
     {
         public bool _drawBounds = false;
 
-        PropertyWrapperMPB _mpb;
+        MaterialPropertyBlock _mpb;
         Renderer _rend;
         Mesh _mesh;
         Bounds _boundsLocal;
 
-        static int sp_InstanceData = Shader.PropertyToID("_InstanceData");
-
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _rend = GetComponent<Renderer>();
             _mesh = GetComponent<MeshFilter>().mesh;
             _boundsLocal = _mesh.bounds;
 
-            if (OceanRenderer.Instance != null)
-            {
-                LateUpdateBounds();
-            }
+            LateUpdateBounds();
         }
 
         private void LateUpdate()
         {
-            if(OceanRenderer.Instance == null)
-            {
-                return;
-            }
-
             // find which lod this object is overlapping
             var rect = new Rect(transform.position.x, transform.position.z, 0f, 0f);
-            var lodIdx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
+            var idx = LodDataMgrAnimWaves.SuggestDataLOD(rect);
 
-            if (lodIdx > -1)
+            if (idx > -1)
             {
                 if (_mpb == null)
                 {
-                    _mpb = new PropertyWrapperMPB();
+                    _mpb = new MaterialPropertyBlock();
                 }
 
-                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+                _rend.GetPropertyBlock(_mpb);
 
                 var lodCount = OceanRenderer.Instance.CurrentLodCount;
-                var lodDataAnimWaves = OceanRenderer.Instance._lodDataAnimWaves;
-                _mpb.SetFloat(LodDataMgr.sp_LD_SliceIndex, lodIdx);
-                lodDataAnimWaves.BindResultData(_mpb);
+                var ldaw = OceanRenderer.Instance._lodDataAnimWaves;
+                ldaw.BindResultData(idx, 0, _mpb);
+                int idx1 = Mathf.Min(idx + 1, lodCount - 1);
+                ldaw.BindResultData(idx1, 1, _mpb);
 
                 // blend LOD 0 shape in/out to avoid pop, if the ocean might scale up later (it is smaller than its maximum scale)
-                bool needToBlendOutShape = lodIdx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
+                bool needToBlendOutShape = idx == 0 && OceanRenderer.Instance.ScaleCouldIncrease;
                 float meshScaleLerp = needToBlendOutShape ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 0f;
 
                 // blend furthest normals scale in/out to avoid pop, if scale could reduce
-                bool needToBlendOutNormals = lodIdx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
+                bool needToBlendOutNormals = idx == lodCount - 1 && OceanRenderer.Instance.ScaleCouldDecrease;
                 float farNormalsWeight = needToBlendOutNormals ? OceanRenderer.Instance.ViewerAltitudeLevelAlpha : 1f;
-                _mpb.SetVector(sp_InstanceData, new Vector4(meshScaleLerp, farNormalsWeight, lodIdx));
+                _mpb.SetVector("_InstanceData", new Vector4(meshScaleLerp, farNormalsWeight, idx));
 
-                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+                _rend.SetPropertyBlock(_mpb);
             }
 
             LateUpdateBounds();
@@ -88,9 +83,7 @@ namespace Crest
 
             if (_drawBounds)
             {
-#if UNITY_EDITOR
                 _rend.bounds.DebugDraw();
-#endif
             }
         }
     }

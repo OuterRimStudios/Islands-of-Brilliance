@@ -1,12 +1,12 @@
 ﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-using Crest;
 using UnityEngine;
+using Crest;
 
 /// <summary>
 /// Simple type of buoyancy - takes one sample and matches boat height and orientation to water height and normal.
 /// </summary>
-public class BoatAlignNormal : FloatingObjectBase
+public class BoatAlignNormal : MonoBehaviour, IBoat
 {
     [Header("Buoyancy Force")]
     [Tooltip("Height offset from transform center to bottom of boat (if any)."), SerializeField]
@@ -25,7 +25,7 @@ public class BoatAlignNormal : FloatingObjectBase
     [Header("Wave Response")]
     [Tooltip("Width dimension of boat. The larger this value, the more filtered/smooth the wave response will be."), SerializeField]
     float _boatWidth = 3f;
-    public override float ObjectWidth { get { return _boatWidth; } }
+    public float BoatWidth { get { return _boatWidth; } }
 
     [SerializeField, Tooltip("Computes a separate normal based on boat length to get more accurate orientations, at the cost of an extra collision sample.")]
     bool _useBoatLength = false;
@@ -52,14 +52,15 @@ public class BoatAlignNormal : FloatingObjectBase
     [SerializeField] bool _debugValidateCollision = false;
 
     bool _inWater;
-    public override bool InWater { get { return _inWater; } }
+    public bool InWater { get { return _inWater; } }
 
-    Vector3 _displacementToObject = Vector3.zero;
-    public override Vector3 CalculateDisplacementToObject() { return _displacementToObject; }
+    Vector3 _velocityRelativeToWater;
+    public Vector3 VelocityRelativeToWater { get { return _velocityRelativeToWater; } }
 
-    public override Vector3 Velocity => _rb.velocity;
+    Vector3 _displacementToBoat;
+    public Vector3 DisplacementToBoat { get { return _displacementToBoat; } }
 
-    Rigidbody _rb;
+    public Rigidbody RB { get; private set; }
 
     SamplingData _samplingData = new SamplingData();
     SamplingData _samplingDataLengthWise = new SamplingData();
@@ -67,7 +68,7 @@ public class BoatAlignNormal : FloatingObjectBase
 
     void Start()
     {
-        _rb = GetComponent<Rigidbody>();
+        RB = GetComponent<Rigidbody>();
 
         if (OceanRenderer.Instance == null)
         {
@@ -78,11 +79,6 @@ public class BoatAlignNormal : FloatingObjectBase
 
     void FixedUpdate()
     {
-        if (OceanRenderer.Instance == null)
-        {
-            return;
-        }
-
         UnityEngine.Profiling.Profiler.BeginSample("BoatAlignNormal.FixedUpdate");
 
         // Trigger processing of displacement textures that have come back this frame. This will be processed
@@ -120,13 +116,9 @@ public class BoatAlignNormal : FloatingObjectBase
         }
         if (_debugDraw) DebugDrawCross(undispPos, 1f, Color.red);
 
-        Vector3 waterSurfaceVel, displacement;
+        var waterSurfaceVel = Vector3.zero;
         bool dispValid, velValid;
-        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out displacement, out dispValid, out waterSurfaceVel, out velValid);
-        if (dispValid)
-        {
-            _displacementToObject = displacement;
-        }
+        collProvider.SampleDisplacementVel(ref undispPos, _samplingData, out _displacementToBoat, out dispValid, out waterSurfaceVel, out velValid);
 
         if (GPUReadbackFlow.Instance)
         {
@@ -151,9 +143,9 @@ public class BoatAlignNormal : FloatingObjectBase
                 new Color(1, 1, 1, 0.6f));
         }
 
-        var velocityRelativeToWater = _rb.velocity - waterSurfaceVel;
+        _velocityRelativeToWater = RB.velocity - waterSurfaceVel;
 
-        var dispPos = undispPos + _displacementToObject;
+        var dispPos = undispPos + _displacementToBoat;
         if (_debugDraw) DebugDrawCross(dispPos, 4f, Color.white);
 
         float height = dispPos.y;
@@ -163,31 +155,30 @@ public class BoatAlignNormal : FloatingObjectBase
         _inWater = bottomDepth > 0f;
         if (!_inWater)
         {
-            UnityEngine.Profiling.Profiler.EndSample();
             return;
         }
 
         var buoyancy = -Physics.gravity.normalized * _buoyancyCoeff * bottomDepth * bottomDepth * bottomDepth;
-        _rb.AddForce(buoyancy, ForceMode.Acceleration);
+        RB.AddForce(buoyancy, ForceMode.Acceleration);
 
 
         // apply drag relative to water
-        var forcePosition = _rb.position + _forceHeightOffset * Vector3.up;
-        _rb.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
-        _rb.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
+        var forcePosition = RB.position + _forceHeightOffset * Vector3.up;
+        RB.AddForceAtPosition(Vector3.up * Vector3.Dot(Vector3.up, -_velocityRelativeToWater) * _dragInWaterUp, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.right * Vector3.Dot(transform.right, -_velocityRelativeToWater) * _dragInWaterRight, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * Vector3.Dot(transform.forward, -_velocityRelativeToWater) * _dragInWaterForward, forcePosition, ForceMode.Acceleration);
 
         float forward = _throttleBias;
         float rawForward = Input.GetAxis("Vertical");
         if (_playerControlled) forward += rawForward;
-        _rb.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
+        RB.AddForceAtPosition(transform.forward * _enginePower * forward, forcePosition, ForceMode.Acceleration);
 
         float reverseMultiplier = (rawForward < 0f ? -1f : 1f);
         float sideways = _steerBias;
         if (_playerControlled) sideways +=
                 (Input.GetKey(KeyCode.A) ? reverseMultiplier * -1f : 0f) +
                 (Input.GetKey(KeyCode.D) ? reverseMultiplier * 1f : 0f);
-        _rb.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
+        RB.AddTorque(transform.up * _turnPower * sideways, ForceMode.Acceleration);
 
         FixedUpdateOrientation(collProvider, undispPos);
 
@@ -234,11 +225,11 @@ public class BoatAlignNormal : FloatingObjectBase
         if (_debugDraw && _useBoatLength) Debug.DrawLine(transform.position, transform.position + 5f * normalLongitudinal, Color.green);
 
         var torqueWidth = Vector3.Cross(transform.up, normal);
-        _rb.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
+        RB.AddTorque(torqueWidth * _boyancyTorque, ForceMode.Acceleration);
         if (_useBoatLength)
         {
             var torqueLength = Vector3.Cross(transform.up, normalLongitudinal);
-            _rb.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
+            RB.AddTorque(torqueLength * _boyancyTorque, ForceMode.Acceleration);
         }
     }
 

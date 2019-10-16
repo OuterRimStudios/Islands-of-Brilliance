@@ -1,6 +1,4 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
@@ -12,32 +10,28 @@ namespace Crest
     /// </summary>
     public class UnderwaterEffect : MonoBehaviour
     {
+        [SerializeField] float _maxHeightAboveWater = 1.5f;
+        [SerializeField] bool _overrideSortingOrder = false;
+        [SerializeField] int _overridenSortingOrder = 0;
+
         [Header("Copy params from Ocean material")]
-
-        [Tooltip("Copy ocean material settings on startup, to ensure consistent appearance between underwater effect and ocean surface."), SerializeField]
-        bool _copyParamsOnStartup = true;
-        [Tooltip("Copy ocean material settings on each frame, to ensure consistent appearance between underwater effect and ocean surface. This should be turned off if you are not changing the ocean material values every frame."), SerializeField]
-        bool _copyParamsEachFrame = true;
-
-        [Header("Advanced")]
-
-        [Tooltip("This GameObject will be disabled when view height is more than this much above the water surface."), SerializeField]
-        float _maxHeightAboveWater = 1.5f;
-        [Tooltip("Override the default Unity draw order."), SerializeField]
-        bool _overrideSortingOrder = false;
-        [Tooltip("If the draw order override is enabled use this new order value."), SerializeField]
-        int _overridenSortingOrder = 0;
+        [SerializeField] bool _copyParamsOnStartup = true;
+        [SerializeField] bool _copyParamsEachFrame = false;
 
         // how many vertical edges to add to curtain geometry
         const int GEOM_HORIZ_DIVISIONS = 64;
 
-        PropertyWrapperMPB _mpb;
+        MaterialPropertyBlock _mpb;
         Renderer _rend;
-
-        static int sp_HeightOffset = Shader.PropertyToID("_HeightOffset");
 
         private void Start()
         {
+            if (OceanRenderer.Instance == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _rend = GetComponent<Renderer>();
 
             // Render before the surface mesh
@@ -59,8 +53,6 @@ namespace Crest
 
         void ConfigureMaterial()
         {
-            if (OceanRenderer.Instance == null) return;
-
             var keywords = _rend.material.shaderKeywords;
             foreach (var keyword in keywords)
             {
@@ -80,12 +72,6 @@ namespace Crest
 
         private void LateUpdate()
         {
-            if (OceanRenderer.Instance == null)
-            {
-                _rend.enabled = false;
-                return;
-            }
-
             float heightOffset = OceanRenderer.Instance.ViewerHeightAboveWater;
 
             // Disable skirt when camera not close to water. In the first few frames collision may not be avail, in that case no choice
@@ -95,7 +81,7 @@ namespace Crest
 
             if (_rend.enabled)
             {
-                if (_copyParamsEachFrame)
+                if(_copyParamsEachFrame)
                 {
                     _rend.material.CopyPropertiesFromMaterial(OceanRenderer.Instance.OceanMaterial);
                 }
@@ -103,35 +89,34 @@ namespace Crest
                 // Assign lod0 shape - trivial but bound every frame because lod transform comes from here
                 if (_mpb == null)
                 {
-                    _mpb = new PropertyWrapperMPB();
+                    _mpb = new MaterialPropertyBlock();
                 }
-                _rend.GetPropertyBlock(_mpb.materialPropertyBlock);
+                _rend.GetPropertyBlock(_mpb);
 
                 // Underwater rendering uses displacements for intersecting the waves with the near plane, and ocean depth/shadows for ScatterColour()
-                _mpb.SetFloat(LodDataMgr.sp_LD_SliceIndex, 0);
-                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(_mpb);
+                OceanRenderer.Instance._lodDataAnimWaves.BindResultData(0, 0, _mpb);
 
                 if (OceanRenderer.Instance._lodDataSeaDepths)
                 {
-                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(_mpb);
+                    OceanRenderer.Instance._lodDataSeaDepths.BindResultData(0, 0, _mpb);
                 }
                 else
                 {
-                    LodDataMgrSeaFloorDepth.BindNull(_mpb);
+                    LodDataMgrSeaFloorDepth.BindNull(0, _mpb);
                 }
 
                 if (OceanRenderer.Instance._lodDataShadow)
                 {
-                    OceanRenderer.Instance._lodDataShadow.BindResultData(_mpb);
+                    OceanRenderer.Instance._lodDataShadow.BindResultData(0, 0, _mpb);
                 }
                 else
                 {
-                    LodDataMgrShadow.BindNull(_mpb);
+                    LodDataMgrShadow.BindNull(0, _mpb);
                 }
 
-                _mpb.SetFloat(sp_HeightOffset, heightOffset);
+                _mpb.SetFloat("_HeightOffset", heightOffset);
 
-                _rend.SetPropertyBlock(_mpb.materialPropertyBlock);
+                _rend.SetPropertyBlock(_mpb);
             }
         }
 
@@ -140,7 +125,7 @@ namespace Crest
             Vector3[] verts = new Vector3[(divs1 + 1) * (divs0 + 1)];
             Vector2[] uvs = new Vector2[(divs1 + 1) * (divs0 + 1)];
             float dx0 = width0 / divs0, dx1 = width1 / divs1;
-            for (int i1 = 0; i1 < divs1 + 1; i1++)
+            for( int i1 = 0; i1 < divs1 + 1; i1++)
             {
                 float v = i1 / (float)divs1;
 

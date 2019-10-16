@@ -1,8 +1,6 @@
-// Crest Ocean System
-
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Inputs/Foam/Add From Texture"
+Shader "Ocean/Inputs/Foam/Add From Texture"
 {
 	Properties
 	{
@@ -20,40 +18,40 @@ Shader "Crest/Inputs/Foam/Add From Texture"
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
+			#pragma vertex vert
+			#pragma fragment frag
 
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
-			
-			float4 _MainTex_ST;
-			float _Radius;
-			float _Amplitude;
-
-			struct Attributes
+			struct appdata_t
 			{
-				float3 positionOS : POSITION;
+				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
-			struct Varyings
+			struct v2f
 			{
-				float4 positionCS : SV_POSITION;
+				float4 vertex : SV_POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
-			Varyings Vert(Attributes input)
+			uniform sampler2D _MainTex;
+			uniform float4 _MainTex_ST;
+			uniform float _Radius;
+
+			v2f vert( appdata_t v )
 			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
+				v2f o;
+				o.vertex = UnityObjectToClipPos( v.vertex );
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				return o;
 			}
 
-			float4 Frag(Varyings input) : SV_Target
+			uniform float _Amplitude;
+
+			float4 frag (v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, input.uv);
+				return tex2D(_MainTex, i.uv);
 			}
 
 			ENDCG

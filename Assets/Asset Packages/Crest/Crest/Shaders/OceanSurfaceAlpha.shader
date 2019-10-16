@@ -1,10 +1,8 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Renders alpha geometry overlaid on ocean surface. Samples the ocean shape texture in the vertex shader to track
 // the surface. Requires the right texture to be assigned (see RenderAlphaOnSurface script).
-Shader "Crest/Ocean Surface Alpha"
+Shader "Ocean/Ocean Surface Alpha"
 {
 	Properties
 	{
@@ -17,6 +15,7 @@ Shader "Crest/Ocean Surface Alpha"
 	SubShader
 	{
 		Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+		LOD 100
 
 		Pass
 		{
@@ -29,41 +28,41 @@ Shader "Crest/Ocean Surface Alpha"
 			Offset 0, -1000000
 
 			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
+			#pragma vertex vert
+			#pragma fragment frag
 			#pragma multi_compile_fog
-
+			
 			#include "UnityCG.cginc"
-			#include "OceanHelpers.hlsl"
+			#include "../../Crest/Shaders/OceanLODData.hlsl"
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct v2f
+			{
+				float2 uv : TEXCOORD0;
+				UNITY_FOG_COORDS(1)
+				float4 vertex : SV_POSITION;
+			};
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			half _Alpha;
 
 			// MeshScaleLerp, FarNormalsWeight, LODIndex (debug), unused
-			float4 _InstanceData;
+			uniform float4 _InstanceData;
 
-			struct Attributes
+			v2f vert (appdata v)
 			{
-				float3 positionOS : POSITION;
-				float2 uv : TEXCOORD0;
-			};
-
-			struct Varyings
-			{
-				float4 positionCS : SV_POSITION;
-				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
-			};
-
-			Varyings Vert(Attributes input)
-			{
-				Varyings o;
+				v2f o;
 
 				// move to world
 				float3 worldPos;
-				worldPos.xz = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).xz;
-				worldPos.y = 0.0;
+				worldPos.xz = mul(unity_ObjectToWorld, v.vertex).xz;
+				worldPos.y = 0.;
 
 				// vertex snapping and lod transition
 				float lodAlpha = ComputeLodAlpha(worldPos, _InstanceData.x);
@@ -71,31 +70,30 @@ Shader "Crest/Ocean Surface Alpha"
 				// sample shape textures - always lerp between 2 scales, so sample two textures
 
 				// sample weights. params.z allows shape to be faded out (used on last lod to support pop-less scale transitions)
-				float wt_smallerLod = (1.0 - lodAlpha) * _LD_Params[_LD_SliceIndex].z;
-				float wt_biggerLod = (1.0 - wt_smallerLod) * _LD_Params[_LD_SliceIndex + 1].z;
+				float wt_0 = (1. - lodAlpha) * _LD_Params_0.z;
+				float wt_1 = (1. - wt_0) * _LD_Params_1.z;
 				// sample displacement textures, add results to current world pos / normal / foam
 				const float2 wxz = worldPos.xz;
-				half foam = 0.0;
-				half sss = 0.;
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(wxz), wt_smallerLod, worldPos, sss);
-				SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV_BiggerLod(wxz), wt_biggerLod, worldPos, sss);
+				half foam = 0.;
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(wxz), wt_0, worldPos);
+				SampleDisplacements(_LD_Sampler_AnimatedWaves_1, LD_1_WorldToUV(wxz), wt_1, worldPos);
 
 				// move to sea level
 				worldPos.y += _OceanCenterPosWorld.y;
 
 				// view-projection
-				o.positionCS = mul(UNITY_MATRIX_VP, float4(worldPos, 1.0));
+				o.vertex = mul(UNITY_MATRIX_VP, float4(worldPos, 1.));
 
-				o.uv = TRANSFORM_TEX(input.uv, _MainTex);
-				UNITY_TRANSFER_FOG(o, o.positionCS);
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;
 			}
-
-			half4 Frag(Varyings input) : SV_Target
+			
+			fixed4 frag (v2f i) : SV_Target
 			{
-				half4 col = tex2D(_MainTex, input.uv);
+				fixed4 col = tex2D(_MainTex, i.uv);
 
-				UNITY_APPLY_FOG(input.fogCoord, col);
+				UNITY_APPLY_FOG(i.fogCoord, col);
 
 				col.a *= _Alpha;
 

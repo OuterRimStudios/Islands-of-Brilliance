@@ -1,6 +1,4 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
@@ -19,7 +17,5 @@ namespace Crest
         public float _shorelineFoamMaxDepth = 0.65f;
         [Range(0f, 5f), Tooltip("Scales intensity of foam generated in shallow water.")]
         public float _shorelineFoamStrength = 2f;
-        [Tooltip("The rendertexture format to use for the foam simulation")]
-        public RenderTextureFormat _renderTextureFormat = RenderTextureFormat.RHalf;
     }
 }

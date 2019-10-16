@@ -1,51 +1,63 @@
-// Crest Ocean System
-
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Renders ocean depth - signed distance from sea level to sea floor
-Shader "Crest/Inputs/Depth/Ocean Depth From Geometry"
+Shader "Ocean/Inputs/Depth/Ocean Depth From Geometry"
 {
-	SubShader
+	Properties
 	{
-		Pass
+	}
+
+	Category
+	{
+		Tags { "Queue" = "Geometry" }
+
+		SubShader
 		{
-			BlendOp Min
-
-			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
-
-			#include "UnityCG.cginc"
-			#include "../../OceanLODData.hlsl"
-
-			struct Attributes
+			Pass
 			{
-				float3 positionOS : POSITION;
-			};
+				Name "BASE"
+				Tags { "LightMode" = "Always" }
+				BlendOp Max
 
-			struct Varyings
-			{
-				float4 positionCS : SV_POSITION;
-				float depth : TEXCOORD0;
-			};
+				CGPROGRAM
+				#pragma vertex vert
+				#pragma fragment frag
+				#pragma multi_compile_fog
+				#include "UnityCG.cginc"
+				#include "../../OceanLODData.hlsl"
+		
+				struct appdata_t {
+					float4 vertex : POSITION;
+				};
 
-			Varyings Vert(Attributes input)
-			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				struct v2f {
+					float4 vertex : SV_POSITION;
+					float depth : TEXCOORD0;
+				};
 
-				float altitude = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)).y;
+				v2f vert( appdata_t v )
+				{
+					v2f o;
+					o.vertex = UnityObjectToClipPos( v.vertex );
 
-				o.depth = _OceanCenterPosWorld.y - altitude;
+					float altitude = mul(unity_ObjectToWorld, v.vertex).y;
 
-				return o;
+					// Depth is altitude above 1000m below sea level. This is because '0' needs to signify deep water.
+					// I originally used a simple bias in the depth texture but it would still produce shallow water outside
+					// the biggest LOD texture where the depth would evaluate to 0 in the ocean vert shader, so i've transformed
+					// 0 to mean deep below the surface.
+					o.depth = altitude - (_OceanCenterPosWorld.y - DEPTH_BASELINE);
+
+					return o;
+				}
+
+				float frag (v2f i) : SV_Target
+				{
+					return i.depth;
+				}
+
+				ENDCG
 			}
-
-			float Frag(Varyings input) : SV_Target
-			{
-				return input.depth;
-			}
-			ENDCG
 		}
 	}
 }

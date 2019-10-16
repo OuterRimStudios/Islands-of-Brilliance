@@ -1,9 +1,9 @@
-﻿// Crest Ocean System
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using DrawFilter = System.Func<Crest.RegisterLodDataInputBase, bool>;
 
 namespace Crest
 {
@@ -19,20 +19,16 @@ namespace Crest
 
         public abstract RenderTextureFormat TextureFormat { get; }
 
-        // NOTE: This MUST match the value in OceanLODData.hlsl, as it
-        // determines the size of the texture arrays in the shaders.
-        public const int MAX_LOD_COUNT = 15;
+        public const int MAX_LOD_COUNT = 16;
 
-        protected abstract int GetParamIdSampler(bool sourceLod = false);
+        public virtual RenderTexture DataTexture(int lodIdx)
+        {
+            return _targets[lodIdx];
+        }
 
-        protected abstract bool NeedToReadWriteTextureData { get; }
+        protected abstract int GetParamIdSampler(int slot);
 
-        protected RenderTexture _targets;
-
-        public RenderTexture DataTexture { get { return _targets; } }
-
-        public static int sp_LD_SliceIndex = Shader.PropertyToID("_LD_SliceIndex");
-        protected static int sp_LODChange = Shader.PropertyToID("_LODChange");
+        protected RenderTexture[] _targets;
 
         // shape texture resolution
         int _shapeRes = -1;
@@ -43,36 +39,29 @@ namespace Crest
         int _scaleDifferencePow2 = 0;
         protected int ScaleDifferencePow2 { get { return _scaleDifferencePow2; } }
 
+        protected List<RegisterLodDataInputBase> _drawList = new List<RegisterLodDataInputBase>();
+
         protected virtual void Start()
         {
             InitData();
         }
 
-        public static RenderTexture CreateLodDataTextures(RenderTextureDescriptor desc, string name, bool needToReadWriteTextureData)
-        {
-            RenderTexture result = new RenderTexture(desc);
-            result.wrapMode = TextureWrapMode.Clamp;
-            result.antiAliasing = 1;
-            result.filterMode = FilterMode.Bilinear;
-            result.anisoLevel = 0;
-            result.useMipMap = false;
-            result.name = name;
-            result.dimension = TextureDimension.Tex2DArray;
-            result.volumeDepth = OceanRenderer.Instance.CurrentLodCount;
-            result.enableRandomWrite = needToReadWriteTextureData;
-            result.Create();
-            return result;
-        }
-
         protected virtual void InitData()
         {
-            Debug.Assert(SystemInfo.SupportsRenderTextureFormat(TextureFormat), "The graphics device does not support the render texture format " + TextureFormat.ToString());
-
-            Debug.Assert(OceanRenderer.Instance.CurrentLodCount <= MAX_LOD_COUNT);
-
             int resolution = OceanRenderer.Instance.LodDataResolution;
             var desc = new RenderTextureDescriptor(resolution, resolution, TextureFormat, 0);
-            _targets = CreateLodDataTextures(desc, SimName, NeedToReadWriteTextureData);
+
+            _targets = new RenderTexture[OceanRenderer.Instance.CurrentLodCount];
+            for (int i = 0; i < _targets.Length; i++)
+            {
+                _targets[i] = new RenderTexture(desc);
+                _targets[i].wrapMode = TextureWrapMode.Clamp;
+                _targets[i].antiAliasing = 1;
+                _targets[i].filterMode = FilterMode.Bilinear;
+                _targets[i].anisoLevel = 0;
+                _targets[i].useMipMap = false;
+                _targets[i].name = SimName + "_" + i + "_0";
+            }
         }
 
         public virtual void UpdateLodData()
@@ -85,9 +74,13 @@ namespace Crest
             }
             else if (width != _shapeRes)
             {
-                _targets.Release();
-                _targets.width = _targets.height = _shapeRes;
-                _targets.Create();
+                for(int i = 0; i < OceanRenderer.Instance.CurrentLodCount; i++)
+                {
+                    var tex = DataTexture(i);
+                    tex.Release();
+                    tex.width = tex.height = _shapeRes;
+                    tex.Create();
+                }
             }
 
             // determine if this LOD has changed scale and by how much (in exponent of 2)
@@ -99,39 +92,41 @@ namespace Crest
             _scaleDifferencePow2 = Mathf.RoundToInt(ratio_l2);
         }
 
-        public void BindResultData(IPropertyWrapper properties, bool blendOut = true)
+        protected PropertyWrapperMaterial _pwMat = new PropertyWrapperMaterial();
+        protected PropertyWrapperMPB _pwMPB = new PropertyWrapperMPB();
+
+        public void BindResultData(int lodIdx, int shapeSlot, Material properties)
         {
-            BindData(properties, _targets, blendOut, ref OceanRenderer.Instance._lodTransform._renderData);
+            _pwMat._target = properties;
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            _pwMat._target = null;
         }
 
-        // Avoid heap allocations instead BindData
-        private Vector4[] _BindData_paramIdPosScales = new Vector4[MAX_LOD_COUNT];
-        // Used in child
-        protected Vector4[] _BindData_paramIdOceans = new Vector4[MAX_LOD_COUNT];
-        protected virtual void BindData(IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData[] renderData, bool sourceLod = false)
+        public void BindResultData(int lodIdx, int shapeSlot, MaterialPropertyBlock properties)
+        {
+            _pwMPB._target = properties;
+            BindData(lodIdx, shapeSlot, _pwMPB, DataTexture(lodIdx), true, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            _pwMPB._target = null;
+        }
+
+        public void BindResultData(int lodIdx, int shapeSlot, Material properties, bool blendOut)
+        {
+            _pwMat._target = properties;
+            BindData(lodIdx, shapeSlot, _pwMat, DataTexture(lodIdx), blendOut, ref OceanRenderer.Instance._lods[lodIdx]._renderData);
+            _pwMat._target = null;
+        }
+
+        protected virtual void BindData(int lodIdx, int shapeSlot, IPropertyWrapper properties, Texture applyData, bool blendOut, ref LodTransform.RenderData renderData)
         {
             if (applyData)
             {
-                properties.SetTexture(GetParamIdSampler(sourceLod), applyData);
+                properties.SetTexture(GetParamIdSampler(shapeSlot), applyData);
             }
 
-            var lt = OceanRenderer.Instance._lodTransform;
-            for (int lodIdx = 0; lodIdx < OceanRenderer.Instance.CurrentLodCount; lodIdx++)
-            {
-                // NOTE: gets zeroed by unity, see https://www.alanzucconi.com/2016/10/24/arrays-shaders-unity-5-4/
-                _BindData_paramIdPosScales[lodIdx] = new Vector4(
-                    renderData[lodIdx]._posSnapped.x, renderData[lodIdx]._posSnapped.z,
-                    OceanRenderer.Instance.CalcLodScale(lodIdx), 0f);
-                _BindData_paramIdOceans[lodIdx] = new Vector4(renderData[lodIdx]._texelWidth, renderData[lodIdx]._textureRes, 1f, 1f / renderData[lodIdx]._textureRes);
-            }
-
-            // Duplicate the last element as the shader accesses element {slice index + 1] in a few situations. This way going
-            // off the end of this parameter is the same as going off the end of the texture array with our clamped sampler.
-            _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdPosScales[OceanRenderer.Instance.CurrentLodCount - 1];
-            _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount] = _BindData_paramIdOceans[OceanRenderer.Instance.CurrentLodCount - 1];
-
-            properties.SetVectorArray(LodTransform.ParamIdPosScale(sourceLod), _BindData_paramIdPosScales);
-            properties.SetVectorArray(LodTransform.ParamIdOcean(sourceLod), _BindData_paramIdOceans);
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            properties.SetVector(LodTransform.ParamIdPosScale(shapeSlot), new Vector3(renderData._posSnapped.x, renderData._posSnapped.z, lt.transform.lossyScale.x));
+            properties.SetVector(LodTransform.ParamIdOcean(shapeSlot),
+                new Vector4(renderData._texelWidth, renderData._textureRes, 1f, 1f / renderData._textureRes));
         }
 
         public static LodDataType Create<LodDataType, LodDataSettings>(GameObject attachGO, ref LodDataSettings settings)
@@ -152,6 +147,30 @@ namespace Crest
         {
         }
 
+        public void AddDraw(RegisterLodDataInputBase data)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Add(data);
+        }
+
+        public void RemoveDraw(RegisterLodDataInputBase data)
+        {
+            if (OceanRenderer.Instance == null)
+            {
+                // Ocean has unloaded, clear out
+                _drawList.Clear();
+                return;
+            }
+
+            _drawList.Remove(data);
+        }
+
         protected void SwapRTs(ref RenderTexture o_a, ref RenderTexture o_b)
         {
             var temp = o_a;
@@ -159,63 +178,33 @@ namespace Crest
             o_b = temp;
         }
 
-        public interface IDrawFilter
-        {
-            float Filter(ILodDataInput data, out int isTransition);
-        }
-
         protected void SubmitDraws(int lodIdx, CommandBuffer buf)
         {
-            var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            lt._renderData.Validate(0, this);
 
-            lt.SetViewProjectionMatrices(lodIdx, buf);
+            lt.SetViewProjectionMatrices(buf);
 
-            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
-            foreach (var draw in drawList)
+            foreach (var draw in _drawList)
             {
-                draw.Draw(buf, 1f, 0);
+                buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
             }
         }
 
-        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, IDrawFilter filter)
+        protected void SubmitDrawsFiltered(int lodIdx, CommandBuffer buf, DrawFilter filter)
         {
-            var lt = OceanRenderer.Instance._lodTransform;
-            lt._renderData[lodIdx].Validate(0, this);
+            var lt = OceanRenderer.Instance._lods[lodIdx];
+            lt._renderData.Validate(0, this);
 
-            lt.SetViewProjectionMatrices(lodIdx, buf);
+            lt.SetViewProjectionMatrices(buf);
 
-            var drawList = RegisterLodDataInputBase.GetRegistrar(GetType());
-            foreach (var draw in drawList)
+            foreach (var draw in _drawList)
             {
-                if (!draw.Enabled)
+                if (filter(draw))
                 {
-                    continue;
-                }
-
-                int isTransition;
-                float weight = filter.Filter(draw, out isTransition);
-                if (weight > 0f)
-                {
-                    draw.Draw(buf, weight, isTransition);
+                    buf.DrawRenderer(draw.RendererComponent, draw.RendererComponent.material);
                 }
             }
-        }
-
-        protected struct TextureArrayParamIds
-        {
-            private int _paramId;
-            private int _paramId_Source;
-            public TextureArrayParamIds(string textureArrayName)
-            {
-                _paramId = Shader.PropertyToID(textureArrayName);
-                // Note: string concatonation does generate a small amount of
-                // garbage. However, this is called on initialisation so should
-                // be ok for now? Something worth considering for the future if
-                // we want to go garbage-free.
-                _paramId_Source = Shader.PropertyToID(textureArrayName + "_Source");
-            }
-            public int GetId(bool sourceLod) { return sourceLod ? _paramId_Source : _paramId; }
         }
     }
 }

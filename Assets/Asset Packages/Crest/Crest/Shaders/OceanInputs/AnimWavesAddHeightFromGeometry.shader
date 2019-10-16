@@ -1,11 +1,9 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // This adds the height from the geometry. This allows setting the water height to some level for rivers etc, but still
 // getting the waves added on top.
 
-Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
+Shader "Ocean/Inputs/Animated Waves/Add Water Height From Geometry"
 {
 	Properties
 	{
@@ -17,6 +15,8 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 
  	SubShader
 	{
+		Tags{ "Queue" = "Transparent" }
+
  		Pass
 		{
 			BlendOp [_BlendOp]
@@ -24,36 +24,36 @@ Shader "Crest/Inputs/Animated Waves/Add Water Height From Geometry"
 			ColorMask [_ColorWriteMask]
 
  			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
+			#pragma vertex vert
+			#pragma fragment frag
 
  			#include "UnityCG.cginc"
 			#include "../OceanLODData.hlsl"
 
- 			struct Attributes
+ 			struct appdata
 			{
-				float3 positionOS : POSITION;
+				float4 vertex : POSITION;
 			};
 
- 			struct Varyings
+ 			struct v2f
 			{
-				float4 positionCS : SV_POSITION;
+				float4 vertex : SV_POSITION;
 				float3 worldPos : TEXCOORD0;
 			};
 
- 			Varyings Vert(Attributes input)
+ 			v2f vert (appdata v)
 			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
-				o.worldPos = mul(unity_ObjectToWorld, float4(input.positionOS, 1.0));
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 				return o;
 			}
 
- 			half4 Frag(Varyings input) : SV_Target
+ 			half4 frag (v2f i) : SV_Target
 			{
 				// Write displacement to get from sea level of ocean to the y value of this geometry
-				float addHeight = input.worldPos.y - _OceanCenterPosWorld.y;
-				return half4(0.0, addHeight, 0.0, 1.0);
+				float addHeight = i.worldPos.y - _OceanCenterPosWorld.y;
+				return half4(0., addHeight, 0., 1.);
 			}
 			ENDCG
 		}

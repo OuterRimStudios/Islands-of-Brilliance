@@ -1,11 +1,6 @@
-// Crest Ocean System
-
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-#ifndef CREST_UNDERWATER_SHARED_INCLUDED
-#define CREST_UNDERWATER_SHARED_INCLUDED
-
-#define CREST_MAX_UPDOWN_AMOUNT 0.8
+#define MAX_UPDOWN_AMOUNT 0.8
 
 float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 {
@@ -19,8 +14,7 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 	{
 		// Sample displacement textures, add results to current world pos / normal / foam
 		disp = float3(sampleXZ.x, _OceanCenterPosWorld.y, sampleXZ.y);
-		half sss = 0.;
-		SampleDisplacements(_LD_TexArray_AnimatedWaves, WorldToUV(sampleXZ), 1.0, disp, sss);
+		SampleDisplacements(_LD_Sampler_AnimatedWaves_0, LD_0_WorldToUV(sampleXZ), 1.0, disp);
 		float3 nearestPointOnRay = pos + dir * dot(disp - pos, dir);
 		const float2 error = disp.xz - nearestPointOnRay.xz;
 		sampleXZ -= error;
@@ -28,5 +22,3 @@ float IntersectRayWithWaterSurface(const float3 pos, const float3 dir)
 
 	return dot(disp - pos, dir);
 }
-
-#endif // CREST_UNDERWATER_SHARED_INCLUDED

@@ -1,37 +1,45 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 
 namespace Crest
 {
-    /// <summary>
-    /// Reads back flow data - horizontal velocity of water - so that it is available for physics.
-    /// </summary>
     public class GPUReadbackFlow : GPUReadbackBase<LodDataMgrFlow>
     {
-        public static GPUReadbackFlow Instance { get; private set; }
+        static GPUReadbackFlow _instance;
+        public static GPUReadbackFlow Instance
+        {
+            get
+            {
+#if !UNITY_EDITOR
+                return _instance;
+#else
+                // Allow hot code edit/recompile in editor - re-init singleton reference.
+                return _instance != null ? _instance : (_instance = FindObjectOfType<GPUReadbackFlow>());
+#endif
+            }
+        }
 
         protected override void Start()
         {
             base.Start();
-
-            Instance = this;
 
             if (enabled == false)
             {
                 return;
             }
 
-            _minGridSize = 0.5f * _lodComponent.Settings._minObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
-            _maxGridSize = 0.5f * _lodComponent.Settings._maxObjectWidth / OceanRenderer.Instance.MinTexelsPerWave;
+            Debug.Assert(_instance == null);
+            _instance = this;
+
+            _minGridSize = 0.5f * _lodComponent.Settings._minObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
+            _maxGridSize = 0.5f * _lodComponent.Settings._maxObjectWidth / OceanRenderer.Instance._minTexelsPerWave;
             _maxGridSize = Mathf.Max(_maxGridSize, 2f * _minGridSize);
         }
 
         private void OnDestroy()
         {
-            Instance = null;
+            _instance = null;
         }
 
         public bool SampleFlow(ref Vector3 i_worldPos, SamplingData i_samplingData, out Vector2 flow)
@@ -49,13 +57,5 @@ namespace Crest
             }
             return data._resultData.SampleRG16(ref i_worldPos, out flow);
         }
-
-#if UNITY_EDITOR
-        [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnReLoadScripts()
-        {
-            Instance = FindObjectOfType<GPUReadbackFlow>();
-        }
-#endif
     }
 }

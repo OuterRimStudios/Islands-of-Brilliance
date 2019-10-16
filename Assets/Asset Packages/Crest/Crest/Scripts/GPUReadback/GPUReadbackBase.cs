@@ -1,6 +1,4 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using System.Collections.Generic;
 using Unity.Collections;
@@ -9,9 +7,6 @@ using UnityEngine.Rendering;
 
 namespace Crest
 {
-    /// <summary>
-    /// Interface for an object that will provide min and max resolutions that should be read back.
-    /// </summary>
     public interface IReadbackSettingsProvider
     {
         void GetMinMaxGridSizes(out float minGridSize, out float maxGridSize);
@@ -81,13 +76,6 @@ namespace Crest
                 return;
             }
 
-            if (!SystemInfo.supportsAsyncGPUReadback)
-            {
-                Debug.LogError("This device does not support GPU readback. " + this.GetType().Name + " will be disabled.", this);
-                enabled = false;
-                return;
-            }
-
             SetTextureFormat(_lodComponent.TextureFormat);
         }
 
@@ -129,8 +117,8 @@ namespace Crest
                 int lastUsableIndex = CanUseLastTwoLODs ? (lodCount - 1) : (lodCount - 3);
 
                 _perLodData.ValueArray[i]._activelyBeingRendered =
-                    _perLodData.KeyArray[i] >= ocean._lodTransform._renderData[0]._texelWidth &&
-                    _perLodData.KeyArray[i] <= ocean._lodTransform._renderData[lastUsableIndex]._texelWidth;
+                    _perLodData.KeyArray[i] >= ocean._lods[0]._renderData._texelWidth &&
+                    _perLodData.KeyArray[i] <= ocean._lods[lastUsableIndex]._renderData._texelWidth;
 
                 if (!_perLodData.ValueArray[i]._activelyBeingRendered)
                 {
@@ -141,21 +129,17 @@ namespace Crest
                 }
             }
 
-            var lt = ocean._lodTransform;
-
-            for (int lodIndex = 0; lodIndex < ocean.CurrentLodCount; lodIndex++)
+            foreach (var lt in ocean._lods)
             {
-                float lodTexelWidth = lt._renderData[lodIndex]._texelWidth;
-
                 // Don't add uninitialised data
-                if (lodTexelWidth == 0f) continue;
+                if (lt._renderData._texelWidth == 0f) continue;
 
-                if (lodTexelWidth >= _minGridSize && (lodTexelWidth <= _maxGridSize || _maxGridSize == 0f))
+                if (lt._renderData._texelWidth >= _minGridSize && (lt._renderData._texelWidth <= _maxGridSize || _maxGridSize == 0f))
                 {
-                    var tex = _lodComponent.DataTexture;
+                    var tex = _lodComponent.DataTexture(lt.LodIndex);
                     if (tex == null) continue;
 
-                    if (!_perLodData.ContainsKey(lodTexelWidth))
+                    if (!_perLodData.ContainsKey(lt._renderData._texelWidth))
                     {
                         var resultData = new PerLodData();
                         resultData._resultData = new ReadbackData();
@@ -170,10 +154,10 @@ namespace Crest
                             resultData._resultDataPrevFrame._data = new NativeArray<ushort>(num, Allocator.Persistent);
                         }
 
-                        _perLodData.Add(lodTexelWidth, resultData);
+                        _perLodData.Add(lt._renderData._texelWidth, resultData);
                     }
 
-                    var lodData = _perLodData[lodTexelWidth];
+                    var lodData = _perLodData[lt._renderData._texelWidth];
 
                     if (lodData._activelyBeingRendered)
                     {
@@ -181,7 +165,7 @@ namespace Crest
                         // ensure everything in the frame is done.
                         if (runningFromUpdate)
                         {
-                            EnqueueReadbackRequest(tex, lodIndex, lt._renderData[lodIndex], _prevFrameTime);
+                            EnqueueReadbackRequest(tex, lt._renderData, _prevFrameTime);
                         }
 
                         ProcessArrivedRequests(lodData);
@@ -193,7 +177,7 @@ namespace Crest
         /// <summary>
         /// Request current contents of cameras shape texture. queue pattern inspired by: https://github.com/keijiro/AsyncCaptureTest
         /// </summary>
-        void EnqueueReadbackRequest(RenderTexture target, int lodIndex, LodTransform.RenderData renderData, float previousFrameTime)
+        void EnqueueReadbackRequest(RenderTexture target, LodTransform.RenderData renderData, float previousFrameTime)
         {
             if (!_doReadback)
             {
@@ -213,7 +197,7 @@ namespace Crest
                 lodData._requests.Enqueue(
                     new ReadbackRequest
                     {
-                        _request = AsyncGPUReadback.Request(target, 0, 0, target.width, 0, target.height, lodIndex, 1),
+                        _request = AsyncGPUReadback.Request(target),
                         _renderData = renderData,
                         _time = previousFrameTime,
                     }
@@ -496,7 +480,7 @@ namespace Crest
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
-                float minWavelength = texelWidth * OceanRenderer.Instance.MinTexelsPerWave;
+                float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
                 if (minSpatialLength / minWavelength > 2f)
                 {
                     continue;
@@ -540,7 +524,7 @@ namespace Crest
 
                 // The smallest wavelengths should repeat no more than twice across the smaller spatial length. Unless we're
                 // in the last LOD - then this is the best we can do.
-                float minWavelength = texelWidth * OceanRenderer.Instance.MinTexelsPerWave;
+                float minWavelength = texelWidth * OceanRenderer.Instance._minTexelsPerWave;
                 if (i_samplingData._minSpatialLength / minWavelength > 2f)
                 {
                     continue;

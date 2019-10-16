@@ -1,60 +1,57 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 // Draw cached depths into current frame ocean depth data
-Shader "Crest/Inputs/Depth/Cached Depths"
+Shader "Ocean/Inputs/Depth/Cached Depths"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 	}
-
 	SubShader
 	{
+		Tags { "RenderType"="Opaque" }
+		LOD 100
+
 		Pass
 		{
 			// Min blending to take the min of all depths. Similar in spirit to zbuffer'd visibility when viewing from top down.
 			// To confuse matters further, ocean depth is now more like 'sea floor altitude' - a height above a deep water value,
 			// so values are increasing in Y and we need to take the MAX of all depths.
-			BlendOp Min
+			BlendOp Max
 
 			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
-
-			#include "../../OceanLODData.hlsl"
-
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
+			#pragma vertex vert
+			#pragma fragment frag
 
 			#include "UnityCG.cginc"
 
-			struct Attributes
+			struct appdata
 			{
-				float3 positionOS : POSITION;
+				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 			};
 
-			struct Varyings
+			struct v2f
 			{
-				float4 position : SV_POSITION;
 				float2 uv : TEXCOORD0;
+				float4 vertex : SV_POSITION;
 			};
 
-			Varyings Vert(Attributes input)
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			
+			v2f vert (appdata v)
 			{
-				Varyings output;
-				output.position = UnityObjectToClipPos(input.positionOS);
-				output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-				return output;
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				return o;
 			}
-
-			half4 Frag(Varyings input) : SV_Target
+			
+			half frag (v2f i) : SV_Target
 			{
-				return half4(tex2D(_MainTex, input.uv).x, 0.0, 0.0, 0.0);
+				return tex2D(_MainTex, i.uv).x;
 			}
-
 			ENDCG
 		}
 	}

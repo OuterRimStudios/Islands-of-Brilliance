@@ -1,8 +1,4 @@
-// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
-
-Shader "Crest/Inputs/Flow/Fixed Direction"
+﻿Shader "Ocean/Inputs/Flow/Fixed Direction"
 {
 	Properties
 	{
@@ -12,39 +8,42 @@ Shader "Crest/Inputs/Flow/Fixed Direction"
 
 	SubShader
 	{
+		Tags { "RenderType"="Opaque" }
+		LOD 100
+
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex Vert
-			#pragma fragment Frag
-
+			#pragma vertex vert
+			#pragma fragment frag
+			
 			#include "UnityCG.cginc"
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+			};
+
+			struct v2f
+			{
+				float4 vertex : SV_POSITION;
+				float2 vel : TEXCOORD0;
+			};
 
 			float _Speed;
 			float _Direction;
 
-			struct Attributes
+			v2f vert(appdata v)
 			{
-				float3 positionOS : POSITION;
-			};
-
-			struct Varyings
-			{
-				float4 positionCS : SV_POSITION;
-				float2 vel : TEXCOORD0;
-			};
-
-			Varyings Vert(Attributes input)
-			{
-				Varyings o;
-				o.positionCS = UnityObjectToClipPos(input.positionOS);
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.vel = _Speed * float2(cos(_Direction * 6.283185), sin(_Direction * 6.283185));
 				return o;
 			}
 			
-			float2 Frag(Varyings input) : SV_Target
+			float2 frag(v2f i) : SV_Target
 			{
-				return input.vel;
+				return i.vel;
 			}
 			ENDCG
 		}

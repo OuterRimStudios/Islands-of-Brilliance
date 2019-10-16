@@ -1,30 +1,15 @@
-﻿// Crest Ocean System
-
-// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
+﻿// This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Crest
 {
-    /// <summary>
-    /// Base class for the command buffer builder, which takes care of updating all ocean-related data. If you wish to provide your
-    /// own update logic, you can create a new component that inherits from this class and attach it to the same GameObject as the
-    /// OceanRenderer script. The new component should be set to update after the Default bucket, similar to BuildCommandBuffer.
-    /// </summary>
     public abstract class BuildCommandBufferBase : MonoBehaviour
     {
-        /// <summary>
-        /// Used to validate update order
-        /// </summary>
         public static int _lastUpdateFrame = -1;
     }
 
-    /// <summary>
-    /// The default builder for the ocean update command buffer which takes care of updating all ocean-related data, for
-    /// example rendering animated waves and advancing sims. This runs in LateUpdate after the Default bucket, after the ocean
-    /// system been moved to an up to date position and frame processing is done.
-    /// </summary>
     public class BuildCommandBuffer : BuildCommandBufferBase
     {
         CommandBuffer _buf;
@@ -84,7 +69,6 @@ namespace Crest
 
             Build(OceanRenderer.Instance, _buf);
 
-            // This will execute at the beginning of the frame before the graphics queue
             Graphics.ExecuteCommandBuffer(_buf);
 
             _lastUpdateFrame = Time.frameCount;

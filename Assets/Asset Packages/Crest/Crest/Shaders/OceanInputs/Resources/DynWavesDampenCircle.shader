@@ -1,8 +1,6 @@
-// Crest Ocean System
-
 // This file is subject to the MIT License as seen in the root of this folder structure (LICENSE)
 
-Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
+Shader "Ocean/Inputs/Dynamic Waves/Dampen Circle"
 {
 	Properties
 	{
@@ -22,9 +20,6 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 
 			#include "UnityCG.cginc"
 
-			float _Radius;
-			float _DampenStrength;
-
 			struct Attributes
 			{
 				float4 positionOS : POSITION;
@@ -35,6 +30,9 @@ Shader "Crest/Inputs/Dynamic Waves/Dampen Circle"
 				float4 positionCS : SV_POSITION;
 				float2 worldOffsetScaled : TEXCOORD0;
 			};
+
+			uniform float _Radius;
+			uniform float _DampenStrength;
 
 			Varyings Vert(Attributes input)
 			{
